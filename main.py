@@ -3,7 +3,7 @@
 # ===================================
 import numpy as np
 from matplotlib import pylab as plt
-import imaging
+from imaging import *
 import utility
 import os,sys
 
@@ -55,7 +55,7 @@ temp = np.fromfile("images/" + image_name + ".raw", dtype="uint16", sep="")
 if (image_name == "DSC_1339_768x512_rggb"):
 
     temp = temp.reshape([512, 768])
-    raw = imaging.ImageInfo("1339_768x512_rggb", temp)
+    raw = ImageInfo("1339_768x512_rggb", temp)
     raw.set_color_space("raw")
     raw.set_bayer_pattern("rggb")
     raw.set_channel_gain((1.94921875, 1.0, 1.0, 1.34375)) # Please shuffle the values
@@ -73,7 +73,7 @@ if (image_name == "DSC_1339_768x512_rggb"):
 elif (image_name == "DSC_1339_768x512_gbrg"):
 
     temp = temp.reshape([512, 768])
-    raw = imaging.ImageInfo("1339_768x512_gbrg", temp)
+    raw = ImageInfo("1339_768x512_gbrg", temp)
     raw.set_color_space("raw")
     raw.set_bayer_pattern("gbrg")
     raw.set_channel_gain((1.0, 1.34375, 1.94921875, 1.0)) # Please shuffle the values
@@ -91,7 +91,7 @@ elif (image_name == "DSC_1339_768x512_gbrg"):
 elif (image_name == "DSC_1339_768x512_grbg"):
 
     temp = temp.reshape([512, 768])
-    raw = imaging.ImageInfo("1339_768x512_grbg", temp)
+    raw = ImageInfo("1339_768x512_grbg", temp)
     raw.set_color_space("raw")
     raw.set_bayer_pattern("grbg")
     raw.set_channel_gain((1.0, 1.94921875, 1.34375, 1.0)) # Please shuffle the values
@@ -109,7 +109,7 @@ elif (image_name == "DSC_1339_768x512_grbg"):
 elif (image_name == "DSC_1339_768x512_bggr"):
 
     temp = temp.reshape([512, 768])
-    raw = imaging.ImageInfo("1339_768x512_bggr", temp)
+    raw = ImageInfo("1339_768x512_bggr", temp)
     raw.set_color_space("raw")
     raw.set_bayer_pattern("bggr")
     raw.set_channel_gain((1.34375, 1.0, 1.0, 1.94921875,)) # Please shuffle the values
@@ -127,7 +127,7 @@ elif (image_name == "DSC_1339_768x512_bggr"):
 elif (image_name == "DSC_1320_2048x2048_rggb"):
 
     temp = temp.reshape([2048, 2048])
-    raw = imaging.ImageInfo("1320_2048x2048_rggb", temp)
+    raw = ImageInfo("1320_2048x2048_rggb", temp)
     raw.set_color_space("raw")
     raw.set_bayer_pattern("rggb")
     raw.set_channel_gain((1.94921875, 1.0, 1.0, 1.34375)) # Please shuffle the values
@@ -146,7 +146,7 @@ elif (image_name == "DSC_1320_2048x2048_rggb"):
 elif (image_name == "DSC_1372_6032x4032_rggb"):
 
     temp = temp.reshape([4032, 6032])
-    raw = imaging.ImageInfo("DSC_1372_6032x4032_rggb", temp)
+    raw = ImageInfo("DSC_1372_6032x4032_rggb", temp)
     raw.set_color_space("raw")
     raw.set_bayer_pattern("rggb")
     raw.set_channel_gain((1.94921875, 1.0, 1.0, 1.34375)) # Please shuffle the values
@@ -170,7 +170,7 @@ elif (image_name == "DSC_1372_12096x6032_rgb_out_demosaic"):
     data[:, :, 1] = temp[4032 : 2*4032, :]
     data[:, :, 2] = temp[2*4032 : 3*4032, :]
 
-    raw = imaging.ImageInfo("DSC_1372_12096x6032_rgb_out_demosaic", data)
+    raw = ImageInfo("DSC_1372_12096x6032_rgb_out_demosaic", data)
     raw.set_color_space("raw")
     raw.set_bayer_pattern("rggb")
     raw.set_channel_gain((1.94921875, 1.0, 1.0, 1.34375)) # Please shuffle the values
@@ -207,7 +207,7 @@ else:
 # Black level correction
 # ===================================
 if do_black_level_correction:
-    data = imaging.black_level_correction(data, \
+    data = black_level_correction(data, \
                                           raw.get_black_level(),\
                                           raw.get_white_level(),\
                                           [0, 2**raw.get_bit_depth() - 1])
@@ -230,7 +230,7 @@ if do_lens_shading_correction:
     utility.imsave(dark_current_image, "images/" + image_name + "_dark_current_image.png", "uint16")
     utility.imsave(flat_field_image, "images/" + image_name + "_flat_field_image.png", "uint16")
 
-    data = imaging.lens_shading_correction(data).flat_field_compensation(\
+    data = lens_shading_correction(data).flat_field_compensation(\
     dark_current_image, flat_field_image)
 
     # data = lsc.approximate_mathematical_compensation([0.01759, -28.37, -13.36])
@@ -244,7 +244,7 @@ else:
 # ===================================
 if do_bad_pixel_correction:
     neighborhood_size = 3
-    data = imaging.bad_pixel_correction(data, neighborhood_size)
+    data = bad_pixel_correction(data, neighborhood_size)
     utility.imsave(data, "images/" + image_name + "_out_bad_pixel_correction.png", "uint16")
 else:
     pass
@@ -253,7 +253,7 @@ else:
 # Channel gain for white balance
 # ===================================
 if do_channel_gain_white_balance:
-    data = imaging.channel_gain_white_balance(data,\
+    data = channel_gain_white_balance(data,\
                                               raw.get_channel_gain())
     utility.imsave(data, "images/" + image_name + "_out_channel_gain_white_balance.png", "uint16")
 else:
@@ -273,7 +273,7 @@ if do_bayer_denoise:
     threshold_red_blue = 1300
 
     # data is the denoised output, ignoring the second output
-    data, _ = imaging.bayer_denoising(data).utilize_hvs_behavior(\
+    data, _ = bayer_denoising(data).utilize_hvs_behavior(\
     raw.get_bayer_pattern(), initial_noise_level, hvs_min, hvs_max, threshold_red_blue, clip_range)
 
     utility.imsave(data, "images/" + image_name + "_out_bayer_denoising.png", "uint16")
@@ -286,9 +286,9 @@ else:
 # Demosacing
 # ===================================
 if do_demosaic:
-    #data = imaging.demosaic(data, raw.get_bayer_pattern()).mhc(False)
+    #data = demosaic(data, raw.get_bayer_pattern()).mhc(False)
 
-    data = imaging.demosaic(data, raw.get_bayer_pattern()).directionally_weighted_gradient_based_interpolation()
+    data = demosaic(data, raw.get_bayer_pattern()).directionally_weighted_gradient_based_interpolation()
     utility.imsave(data, "images/" + image_name + "_out_demosaic.png", "uint16")
 else:
     pass
@@ -298,13 +298,13 @@ else:
 # ===================================
 if do_demosaic_artifact_reduction:
 
-    data = imaging.demosaic(data).post_process_local_color_ratio(0.80 * 65535)
+    data = demosaic(data).post_process_local_color_ratio(0.80 * 65535)
     utility.imsave(data, "images/" + image_name + "_out_local_color_ratio.png", "uint16")
 
     edge_detection_kernel_size = 5
     edge_threshold = 0.05
     # first output is main output, second output is edge_location is a debug output
-    data, _ = imaging.demosaic(data).post_process_median_filter(edge_detection_kernel_size, edge_threshold)
+    data, _ = demosaic(data).post_process_median_filter(edge_detection_kernel_size, edge_threshold)
     utility.imsave(data, "images/" + image_name + "_out_median_filter.png", "uint16")
     # utility.imsave(edge_location*65535, "images/" + image_name + "_edge_location.png", "uint16")
 
@@ -316,7 +316,7 @@ else:
 # Color correction
 # ===================================
 if do_color_correction:
-    data = imaging.color_correction(data, raw.get_color_matrix()).apply_cmatrix()
+    data = color_correction(data, raw.get_color_matrix()).apply_cmatrix()
     utility.imsave(data, "images/" + image_name + "_out_color_correction.png", "uint16")
 else:
     pass
@@ -327,16 +327,16 @@ else:
 if do_gamma:
 
     # brightening
-    data = imaging.nonlinearity(data, "brightening").luma_adjustment(80.)
+    data = nonlinearity(data, "brightening").luma_adjustment(80.)
 
     # gamma by value
-    #data = imaging.nonlinearity(data, "gamma").by_value(1/2.2, [0, 65535])
+    #data = nonlinearity(data, "gamma").by_value(1/2.2, [0, 65535])
 
     # gamma by table
-    # data = imaging.nonlinearity(data, "gamma").by_table("tables/gamma_2.4.txt", "gamma", [0, 65535])
+    # data = nonlinearity(data, "gamma").by_table("tables/gamma_2.4.txt", "gamma", [0, 65535])
 
     # gamma by value
-    data = imaging.nonlinearity(data, "gamma").by_equation(-0.9, -8.0, [0, 65535])
+    data = nonlinearity(data, "gamma").by_equation(-0.9, -8.0, [0, 65535])
 
     utility.imsave(data, "images/" + image_name + "_out_gamma.png", "uint16")
 
@@ -352,7 +352,7 @@ if do_chromatic_aberration_correction:
     nsr_threshold = 90.
     cr_threshold = 6425./2
 
-    data = imaging.chromatic_aberration_correction(data).purple_fringe_removal(nsr_threshold, cr_threshold)
+    data = chromatic_aberration_correction(data).purple_fringe_removal(nsr_threshold, cr_threshold)
 
     utility.imsave(data, "images/" + image_name + "_out_purple_fringe_removal.png", "uint16")
 else:
@@ -364,10 +364,10 @@ else:
 # ===================================
 if do_tone_mapping:
 
-    data = imaging.tone_mapping(data).nonlinear_masking(1.0)
+    data = tone_mapping(data).nonlinear_masking(1.0)
     utility.imsave(data, "images/" + image_name + "_out_tone_mapping_nl_masking.png", "uint16")
 
-    # data = imaging.tone_mapping(data).dynamic_range_compression("normal", [-25., 260.], [0, 65535])
+    # data = tone_mapping(data).dynamic_range_compression("normal", [-25., 260.], [0, 65535])
     # utility.imsave(data, "images/" + image_name + "_out_tone_mapping_drc.png", "uint16")
 
 else:
@@ -396,7 +396,7 @@ if do_memory_color_enhancement:
     chroma_sigma = [10., 10., 5.]
 
 
-    data = imaging.memory_color_enhancement(data).by_hue_squeeze(target_hue,\
+    data = memory_color_enhancement(data).by_hue_squeeze(target_hue,\
                                                                  hue_preference,\
                                                                  hue_sigma,\
                                                                  is_both_side,\
@@ -418,7 +418,7 @@ if do_noise_reduction:
     # sigma filter parameters
     neighborhood_size = 7
     sigma = [1000, 500, 500]
-    data = imaging.noise_reduction(data).sigma_filter(neighborhood_size, sigma)
+    data = noise_reduction(data).sigma_filter(neighborhood_size, sigma)
 
     utility.imsave(data, "images/" + image_name + "_out_noise_reduction.png", "uint16")
 
@@ -430,7 +430,7 @@ else:
 # ===================================
 if do_sharpening:
 
-    data = imaging.sharpening(data).unsharp_masking()
+    data = sharpening(data).unsharp_masking()
 
     utility.imsave(data, "images/" + image_name + "_out_sharpening.png", "uint16")
 
@@ -447,7 +447,7 @@ if do_distortion_correction:
     zoom_type="fit"
     clip_range=[0, 65535]
 
-    data = imaging.distortion_correction(data).empirical_correction(correction_type, strength, zoom_type, clip_range)
+    data = distortion_correction(data).empirical_correction(correction_type, strength, zoom_type, clip_range)
     utility.imsave(data, "images/" + image_name + "_out_distortion_correction.png", "uint16")
 
 else:
